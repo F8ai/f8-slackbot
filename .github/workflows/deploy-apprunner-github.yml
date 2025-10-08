@@ -1,0 +1,130 @@
+name: Deploy F8 Slackbot to AWS App Runner (GitHub)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  APP_RUNNER_SERVICE: f8-slackbot
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Deploy to App Runner (GitHub)
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
+        PLATFORM_GATEWAY_URL: ${{ secrets.PLATFORM_GATEWAY_URL }}
+      run: |
+        # Get the App Runner service ARN
+        SERVICE_ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$APP_RUNNER_SERVICE'].ServiceArn" --output text)
+        
+        if [ -z "$SERVICE_ARN" ]; then
+          echo "Creating new App Runner service with GitHub source..."
+          aws apprunner create-service \
+            --service-name $APP_RUNNER_SERVICE \
+            --source-configuration '{
+              "CodeRepository": {
+                "RepositoryUrl": "https://github.com/dcmcshan/f8-slackbot",
+                "SourceCodeVersion": {
+                  "Type": "BRANCH",
+                  "Value": "main"
+                },
+                "CodeConfiguration": {
+                  "ConfigurationSource": "REPOSITORY",
+                  "CodeConfigurationValues": {
+                    "Runtime": "NODEJS_18",
+                    "BuildCommand": "npm run build",
+                    "StartCommand": "npm start",
+                    "RuntimeEnvironmentVariables": {
+                      "NODE_ENV": "production",
+                      "PORT": "3000",
+                      "LOG_LEVEL": "info",
+                      "SLACK_BOT_TOKEN": "'$SLACK_BOT_TOKEN'",
+                      "SLACK_SIGNING_SECRET": "'$SLACK_SIGNING_SECRET'",
+                      "PLATFORM_GATEWAY_URL": "'$PLATFORM_GATEWAY_URL'"
+                    }
+                  }
+                }
+              },
+              "AutoDeploymentsEnabled": true
+            }' \
+            --instance-configuration '{
+              "Cpu": "0.25 vCPU",
+              "Memory": "0.5 GB"
+            }'
+        else
+          echo "Updating existing App Runner service with GitHub source..."
+          aws apprunner update-service \
+            --service-arn $SERVICE_ARN \
+            --source-configuration '{
+              "CodeRepository": {
+                "RepositoryUrl": "https://github.com/dcmcshan/f8-slackbot",
+                "SourceCodeVersion": {
+                  "Type": "BRANCH",
+                  "Value": "main"
+                },
+                "CodeConfiguration": {
+                  "ConfigurationSource": "REPOSITORY",
+                  "CodeConfigurationValues": {
+                    "Runtime": "NODEJS_18",
+                    "BuildCommand": "npm run build",
+                    "StartCommand": "npm start",
+                    "RuntimeEnvironmentVariables": {
+                      "NODE_ENV": "production",
+                      "PORT": "3000",
+                      "LOG_LEVEL": "info",
+                      "SLACK_BOT_TOKEN": "'$SLACK_BOT_TOKEN'",
+                      "SLACK_SIGNING_SECRET": "'$SLACK_SIGNING_SECRET'",
+                      "PLATFORM_GATEWAY_URL": "'$PLATFORM_GATEWAY_URL'"
+                    }
+                  }
+                }
+              },
+              "AutoDeploymentsEnabled": true
+            }'
+        fi
+
+    - name: Wait for deployment
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 60
+
+    - name: Get service URL
+      id: get-url
+      run: |
+        SERVICE_ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$APP_RUNNER_SERVICE'].ServiceArn" --output text)
+        SERVICE_URL=$(aws apprunner describe-service --service-arn $SERVICE_ARN --query "Service.ServiceUrl" --output text)
+        echo "service-url=$SERVICE_URL" >> $GITHUB_OUTPUT
+        echo "Service URL: $SERVICE_URL"
+
+    - name: Test deployment
+      run: |
+        SERVICE_URL=${{ steps.get-url.outputs.service-url }}
+        echo "Testing health endpoint..."
+        curl -f $SERVICE_URL/health || exit 1
+        echo "Health check passed!"
+
+    - name: Update Slack app configuration
+      if: success()
+      run: |
+        echo "✅ F8 Slackbot deployed successfully!"
+        echo "🌐 Service URL: ${{ steps.get-url.outputs.service-url }}"
+        echo "📝 Update your Slack app configuration with:"
+        echo "   Events URL: ${{ steps.get-url.outputs.service-url }}/api/slack/events"
+        echo "   Slash Command URL: ${{ steps.get-url.outputs.service-url }}/api/slack/commands"
+        echo "   Interactive Components URL: ${{ steps.get-url.outputs.service-url }}/api/slack/ask-f8"
