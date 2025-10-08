@@ -6,7 +6,7 @@ echo "=========================================================="
 # Configuration
 AWS_REGION="us-east-1"
 APP_RUNNER_SERVICE="f8-slackbot"
-GITHUB_REPO="https://github.com/dcmcshan/f8-slackbot"
+GITHUB_REPO="https://github.com/f8ai/f8-slackbot"
 
 # Check if required environment variables are set
 if [ -z "$SLACK_BOT_TOKEN" ]; then

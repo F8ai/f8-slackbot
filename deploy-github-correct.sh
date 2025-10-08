@@ -6,7 +6,7 @@ echo "======================================================================"
 # Configuration
 AWS_REGION="us-east-1"
 APP_RUNNER_SERVICE="f8-slackbot"
-GITHUB_REPO="https://github.com/dcmcshan/f8-slackbot"
+GITHUB_REPO="https://github.com/f8ai/f8-slackbot"
 CONNECTION_ARN="arn:aws:apprunner:us-east-1:204181332839:connection/formul8-github/a14f5d00111c447b940859babad39973"
 
 # Check if required environment variables are set

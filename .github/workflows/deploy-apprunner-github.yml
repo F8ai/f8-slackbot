@@ -39,7 +39,7 @@ jobs:
             --service-name $APP_RUNNER_SERVICE \
             --source-configuration '{
               "CodeRepository": {
-                "RepositoryUrl": "https://github.com/dcmcshan/f8-slackbot",
+                "RepositoryUrl": "https://github.com/f8ai/f8-slackbot",
                 "SourceCodeVersion": {
                   "Type": "BRANCH",
                   "Value": "main"
@@ -73,7 +73,7 @@ jobs:
             --service-arn $SERVICE_ARN \
             --source-configuration '{
               "CodeRepository": {
-                "RepositoryUrl": "https://github.com/dcmcshan/f8-slackbot",
+                "RepositoryUrl": "https://github.com/f8ai/f8-slackbot",
                 "SourceCodeVersion": {
                   "Type": "BRANCH",
                   "Value": "main"
