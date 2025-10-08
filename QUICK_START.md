@@ -2,13 +2,13 @@
 
 ## 🚀 Repository Created Successfully!
 
-**GitHub Repository**: https://github.com/f8ai/f8-slackbot
+**GitHub Repository**: https://github.com/F8ai/f8-slackbot
 
 ## Quick Setup
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/f8ai/f8-slackbot.git
+git clone https://github.com/F8ai/f8-slackbot.git
 cd f8-slackbot
 ```
 
@@ -69,5 +69,5 @@ SLACKBOT_URL=https://your-slackbot-url.awsapprunner.com node test.js
 ---
 
 **Status**: ✅ Ready for deployment  
-**Repository**: https://github.com/f8ai/f8-slackbot  
+**Repository**: https://github.com/F8ai/f8-slackbot  
 **URL Compatibility**: ✅ Maintained
