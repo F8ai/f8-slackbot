@@ -47,8 +47,8 @@ export async function processSlackEvent(event: SlackEvent): Promise<{ success: b
       message: question,
       user_id: event.user || 'unknown',
       context: {
-        channel: event.channel,
-        thread_ts: event.ts,
+        channel: event.channel || undefined,
+        thread_ts: event.ts || undefined,
         event_type: event.type
       }
     });

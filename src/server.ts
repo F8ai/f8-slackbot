@@ -93,10 +93,10 @@ app.post('/api/slack/events', async (req, res) => {
         });
     }
 
-    res.status(200).send('OK');
+    return res.status(200).send('OK');
   } catch (error) {
     logger.error('Error in Slack events endpoint:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -141,10 +141,10 @@ app.post('/api/slack/commands', async (req, res) => {
       user_id
     });
 
-    res.json(response);
+    return res.json(response);
   } catch (error) {
     logger.error('Error in Slack commands endpoint:', error);
-    res.json({
+    return res.json({
       response_type: 'ephemeral',
       text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
@@ -178,10 +178,10 @@ app.post('/api/slack/ask-f8', async (req, res) => {
       user
     });
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     logger.error('Error in Ask F8 endpoint:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Internal server error',
     });
