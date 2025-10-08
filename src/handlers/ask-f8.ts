@@ -44,8 +44,8 @@ export async function processAskF8(request: AskF8Request): Promise<AskF8Response
     return {
       success: response.success,
       message: response.message,
-      agent: response.agent,
-      usage: response.usage,
+      ...(response.agent && { agent: response.agent }),
+      ...(response.usage && { usage: response.usage }),
       timestamp: response.timestamp || new Date().toISOString()
     };
   } catch (error) {
