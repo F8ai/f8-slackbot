@@ -1,0 +1,63 @@
+# GitHub Action to Sync Secrets to Vercel
+# Add this to .github/workflows/ to automatically sync secrets
+
+name: Sync Secrets to Vercel
+
+on:
+  workflow_dispatch: # Manual trigger
+  
+jobs:
+  sync-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+      
+      - name: Sync SLACK_BOT_TOKEN to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "${{ secrets.SLACK_BOT_TOKEN }}" | vercel env add SLACK_BOT_TOKEN production --token=$VERCEL_TOKEN
+      
+      - name: Sync SLACK_SIGNING_SECRET to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "${{ secrets.SLACK_SIGNING_SECRET }}" | vercel env add SLACK_SIGNING_SECRET production --token=$VERCEL_TOKEN
+      
+      - name: Sync OPENROUTER_API_KEY to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "${{ secrets.OPENROUTER_API_KEY }}" | vercel env add OPENROUTER_API_KEY production --token=$VERCEL_TOKEN
+      
+      - name: Sync PLATFORM_GATEWAY_URL to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "${{ secrets.PLATFORM_GATEWAY_URL }}" | vercel env add PLATFORM_GATEWAY_URL production --token=$VERCEL_TOKEN
+      
+      - name: Redeploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          cd /Users/danielmcshan/GitHub/f8-slackbot
+          vercel --prod --token=$VERCEL_TOKEN --yes
+      
+      - name: Summary
+        run: |
+          echo "✅ All secrets synced to Vercel"
+          echo "✅ Redeployment triggered"
+          echo "🔗 Check deployment: https://vercel.com/dashboard"
+
