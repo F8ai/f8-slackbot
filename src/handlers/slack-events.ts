@@ -1,4 +1,5 @@
 import { routeToAgent } from '../services/agent-router.js';
+import { getSlackClient } from '../services/slack-client.js';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger();
@@ -54,14 +55,48 @@ export async function processSlackEvent(event: SlackEvent): Promise<{ success: b
     });
 
     if (response.success) {
-      // In a real implementation, you would send the response back to Slack
-      // For now, we just log it
       logger.success('Slack event processed successfully', {
         channel: event.channel,
         user: event.user,
         agent: response.agent,
         responseLength: response.message.length
       });
+
+      // Post response back to Slack
+      try {
+        const slackClient = getSlackClient();
+        const formattedResponse = slackClient.formatAgentResponse(
+          response.agent || 'F8',
+          response.message,
+          { responseTime: (response as any).responseTime || 'N/A' }
+        );
+
+        // Post to thread if thread_ts exists, otherwise post to channel
+        if (event.thread_ts) {
+          await slackClient.postThreadReply(
+            event.channel!,
+            event.thread_ts,
+            response.message,
+            formattedResponse
+          );
+        } else {
+          await slackClient.postMessage(
+            event.channel!,
+            response.message,
+            formattedResponse
+          );
+        }
+
+        logger.info('Response posted to Slack channel', {
+          channel: event.channel,
+          agent: response.agent
+        });
+      } catch (slackError: any) {
+        logger.warn('Failed to post to Slack (but agent responded successfully)', {
+          error: slackError?.message || 'Unknown error'
+        });
+        // Don't fail the whole operation if Slack posting fails
+      }
     } else {
       logger.warn('Failed to process Slack event', {
         channel: event.channel,
